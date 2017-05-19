@@ -7,7 +7,9 @@ Each directory contains a simple deep learning experiment.  See the subdirectori
 
 1.  Install Keras (https://keras.io/#installation).  This requires installing either Theano or Tensorflow (explained in Keras documentation).
 
-2.  Check the code out from github:
+2.  Install ROOT (https://root.cern.ch/downloading-root) with python support.
+
+3.  Check the code out from github:
 ```
 git clone https://github.com/klannon/dl_experiments.git
 ```
@@ -17,6 +19,7 @@ git clone https://github.com/klannon/dl_experiments.git
 Keras is installed on the CRC.  To access it, do the following on a CRC machine:
 ```
 module load python
+module load root
 ```
 
 When you run Python, you'll find Keras (currently only with Theano backend) is installed.  Then you just have to clone the git repo to get going.

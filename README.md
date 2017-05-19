@@ -1,6 +1,8 @@
 # dl_experiments
 Simple Deep Learning Experiments
 
+Each directory contains a simple deep learning experiment.  See the subdirectories for explanations of what the experiments do.
+
 ## Installation instructions
 
 1.  Install Keras (https://keras.io/#installation).  This requires installing either Theano or Tensorflow (explained in Keras documentation).
@@ -18,4 +20,3 @@ module load python
 ```
 
 When you run Python, you'll find Keras (currently only with Theano backend) is installed.  Then you just have to clone the git repo to get going.
-

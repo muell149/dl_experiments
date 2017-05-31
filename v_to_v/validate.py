@@ -67,6 +67,7 @@ if __name__ == "__main__":
     minOutput = np.amin(output,axis=0)
     maxOutput = np.amax(output,axis=0)
 
+    print stdDiff
 
     # Let's define a histogram for each output in the target.
     diffHists = []

@@ -8,6 +8,7 @@
 import numpy as np
 from keras.models import load_model
 import argparse, tarfile, os, tempfile, shutil
+from scipy import stats
 
 if __name__ == "__main__":
 

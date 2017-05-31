@@ -5,6 +5,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation
 from keras.optimizers import SGD
 from keras.regularizers import l1, l2, l1_l2
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 import argparse, tarfile, os, tempfile, shutil
 
 if __name__ == "__main__":
@@ -119,16 +120,21 @@ if __name__ == "__main__":
     model.compile(loss='mse',
                   optimizer='adam')
 
+    # Add callbacks
+    # early_stopping = EarlyStopping(monitor = 'val_loss', patience = 7, mode = 'min')
+    filepath = 'model.h5'
+    outFileList.append(filepath)
+    checkpoint = ModelCheckpoint(os.path.join(tmpDirName,filepath), monitor = 'val_loss', mode = 'min', save_best_only = True)
     model.summary()
     
-    model.fit(inputs, outputs, validation_split=(1-args.train_fraction),
-              epochs=args.num_epochs, batch_size=args.batch_size, verbose=2)
+    hist = model.fit(inputs, outputs, validation_split=(1-args.train_fraction),
+              epochs=args.num_epochs, batch_size=args.batch_size, verbose=2, callbacks=[checkpoint])
 
 
     print 'Saving model structure and parameters:'
-    model_filename = 'model.h5'
-    model.save(os.path.join(tmpDirName,model_filename))
-    outFileList.append(model_filename)
+   # model_filename = filepath
+   # model.save(os.path.join(tmpDirName,model_filename))
+   # outFileList.append(model_filename)
 
     print 'Tarring outfiles...'
     outfile_name = '{}_N{}_b{}_l{}_frac{:f}'.format(args.outbase,
@@ -148,3 +154,4 @@ if __name__ == "__main__":
         shutil.rmtree(tmpDirName)
 
     print 'Done.'
+

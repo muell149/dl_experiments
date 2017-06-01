@@ -54,8 +54,8 @@ Before you can submit any jobs, you need to prepare your work area.  Start by is
 
 ```
 pushd ~
-find . -type d -exec fs sa {} nd_campus rl \;
-find . -type d -exec fs sa {} system:authuser rl \;
+find . -path ./YESTRDAY -prune -o -type d -exec fs sa {} nd_campus rl \;
+find . -path ./YESTRDAY -prune -o -type d -exec fs sa {} system:authuser rl \;
 popd
 ```
 

@@ -44,5 +44,82 @@ This is a very simple (and not well designed) script that prints out the NN weig
 ./print.py testv1_N10_b256_l3_frac0.900000.tgz
 ```
 
+## Using HTCondor to Submit batch jobs
 
+You can submit multiple runs as separate batch jobs using the NDCMS cluster from earth.  This lets you do many runs much more rapidly.
+
+### Prepare your work area
+
+Before you can submit any jobs, you need to prepare your work area.  Start by issuing the following commands to get your AFS permissions set properly:
+
+```
+pushd ~
+find . -type d -exec fs sa {} nd_campus rl \;
+find . -type d -exec fs sa {} system:authuser rl \;
+popd
+```
+
+Then, in your `v_to_v` directory, you should create two sub directories:
+
+```
+mkdir condorLogs
+mkdir results
+```
+
+Finally, set the permissions on these so that HTCondor can write into them:
+
+```
+fs sa condorLogs nd_campus rlidwk
+fs sa condorLogs system:administrators rlidwka
+fs sa condorLogs system:authuser rlidwk
+fs sa results nd_campus rlidwk
+fs sa results system:administrators rlidwka
+fs sa results system:authuser rlidwk
+```
+
+### Prepare your submission
+
+The `train.submit` file tells HTCondor what jobs to submit and how.  Most of what's there can just be kept the same from one run to the next.  The things that you might want to change include
+
+* The `queue` statement is where you specify which jobs you want to run.  
+```  
+queue arguments from (  
+[args job 1]  
+[args job 2]  
+[args job 3]  
+.  
+.  
+.  
+```  
+Where the `[args job N]' entries are just the command line arguments from the `trail.py` command.
+
+* The `transfer_input_files` entry should be updated if you change the script `train.csh` to do different things that require different files (e.g. change the name of the training for validation set, etc.)
+
+* As of this writing (Jun. 1, 2017) there is an issue with some of the CRC hosts.  We are working around this with a `requirements` line to select only the hosts that don't cause `Theano` to crash.
+
+
+You might also want to make changes to `train.csh`.  Right now the script runs `train.py` and `validate.py` but you could make it do other things as well.
+
+My suggestion is to make a copy of `train.submit` and edit that for each distinct type of run.  That way, if you want to go back and rerun a run, you can just resubmit the appropriate `.submit` file.
+
+
+### HTCondor Commands
+
+* Submit your job:  
+```  
+condor_submit train.submit  
+```  
+Change `train.submit` to be the name of whatever file you want to submit.
+
+* Check on your jobs:  
+```  
+condor_q  
+```  
+This tells you about how many jobs are done, running, or idle (not started yet).
+
+* Watch your jobs:
+```  
+watch condor_q  
+```  
+This let's you keep an eye on your jobs and notice when they're done.  The `watch` command runs forever, so when you're done watching, use `control-C` to get out of it.
 

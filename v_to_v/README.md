@@ -82,6 +82,7 @@ fs sa results system:authuser rlidwk
 The `train.submit` file tells HTCondor what jobs to submit and how.  Most of what's there can just be kept the same from one run to the next.  The things that you might want to change include
 
 * The `queue` statement is where you specify which jobs you want to run.  
+
 ```  
 queue arguments from (  
 [args job 1]  
@@ -91,6 +92,7 @@ queue arguments from (
 .  
 .  
 ```  
+
 Where the `[args job N]' entries are just the command line arguments from the `trail.py` command.
 
 * The `transfer_input_files` entry should be updated if you change the script `train.csh` to do different things that require different files (e.g. change the name of the training for validation set, etc.)

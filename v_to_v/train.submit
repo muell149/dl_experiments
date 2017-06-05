@@ -15,7 +15,7 @@ request_disk = 500 MB
 request_memory = 1 GB
 
 # Remove when d12chas/skynet1[345] problem fixed!
-requirements = regexp("skynet00.",Machine) || regexp("skynet01[0-2]",Machine)
+requirements = regexp("d12chas",Machine)
 
 # Don't forget to include training files in transfer_input_files above
 queue arguments from (

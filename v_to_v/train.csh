@@ -17,7 +17,8 @@ if ( -r /opt/crc/Modules/current/init/csh ) then
 endif
 module load python
 module load root
-setenv THEANO_FLAGS "base_compiledir=$_CONDOR_SCRATCH_DIR/.theano"
+setenv THEANO_FLAGS "base_compiledir=$_CONDOR_SCRATCH_DIR/.theano,gcc.cxxflags=-march=corei7"
+setenv KERAS_BACKEND "theano"
 
 echo '==================================='
 pwd

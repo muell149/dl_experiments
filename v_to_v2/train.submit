@@ -1,0 +1,72 @@
+universe = vanilla
+executable = train.csh
+notification = Never
+log = condorLogs/condor.logfile
+output = condorLogs/job_$(Cluster)_$(Process).stdout
+error = condorLogs/job_$(Cluster)_$(Process).stderr
+
+should_transfer_files = YES
+transfer_input_files = train.csh,train.py,train1M.npz,validate.py,validate10k.npz
+when_to_transfer_output = ON_EXIT
+transfer_output_files = results
+
+request_cpus = 1
+request_disk = 500 MB
+request_memory = 1 GB
+
+# Remove when d12chas/skynet1[345] problem fixed!
+requirements = regexp("d12chas",Machine)
+
+# Don't forget to include training files in transfer_input_files above
+queue arguments from (
+   -o test01 -b 1000 -N 50 -l 100
+   -o test02 -b 1000 -N 50 -l 100
+   -o test03 -b 1000 -N 50 -l 100
+   -o test04 -b 1000 -N 50 -l 100
+   -o test05 -b 1000 -N 50 -l 100
+   -o test06 -b 1000 -N 50 -l 100 --reg-type l2
+   -o test07 -b 1000 -N 50 -l 100 --reg-type l2
+   -o test08 -b 1000 -N 50 -l 100 --reg-type l2
+   -o test09 -b 1000 -N 50 -l 100 --reg-type l2
+   -o test10 -b 1000 -N 50 -l 100 --reg-type l2
+   -o test11 -b 1000 -N 50 -l 100 -l 100
+   -o test12 -b 1000 -N 50 -l 100 -l 100
+   -o test13 -b 1000 -N 50 -l 100 -l 100
+   -o test14 -b 1000 -N 50 -l 100 -l 100
+   -o test15 -b 1000 -N 50 -l 100 -l 100
+   -o test16 -b 10000 -N 500 -l 100
+   -o test17 -b 10000 -N 500 -l 100
+   -o test18 -b 10000 -N 500 -l 100
+   -o test19 -b 10000 -N 500 -l 100
+   -o test20 -b 10000 -N 500 -l 100
+   -o test21 -b 10000 -N 500 -l 100 --reg-type l2
+   -o test22 -b 10000 -N 500 -l 100 --reg-type l2
+   -o test23 -b 10000 -N 500 -l 100 --reg-type l2
+   -o test24 -b 10000 -N 500 -l 100 --reg-type l2
+   -o test25 -b 10000 -N 500 -l 100 --reg-type l2
+   -o test26 -b 10000 -N 500 -l 100 -l 100
+   -o test27 -b 10000 -N 500 -l 100 -l 100
+   -o test28 -b 10000 -N 500 -l 100 -l 100
+   -o test29 -b 10000 -N 500 -l 100 -l 100
+   -o test30 -b 10000 -N 500 -l 100 -l 100
+   -o test31 -b 1000 -N 50 -l 1000
+   -o test32 -b 1000 -N 50 -l 1000
+   -o test33 -b 1000 -N 50 -l 1000
+   -o test34 -b 1000 -N 50 -l 1000
+   -o test35 -b 1000 -N 50 -l 1000
+   -o test36 -b 1000 -N 50 -l 1000 --reg-type l2
+   -o test37 -b 1000 -N 50 -l 1000 --reg-type l2
+   -o test38 -b 1000 -N 50 -l 1000 --reg-type l2
+   -o test39 -b 1000 -N 50 -1 1000 --reg-type l2
+   -o test40 -b 1000 -N 50 -l 1000 --reg-type l2
+   -o test41 -b 10000 -N 500 -l 1000
+   -o test42 -b 10000 -N 500 -l 1000
+   -o test43 -b 10000 -N 500 -l 1000
+   -o test44 -b 10000 -N 500 -l 1000
+   -o test45 -b 10000 -N 500 -l 1000
+   -o test46 -b 10000 -N 500 -l 1000 --reg-type l2
+   -o test47 -b 10000 -N 500 -l 1000 --reg-type l2
+   -o test48 -b 10000 -N 500 -l 1000 --reg-type l2
+   -o test49 -b 10000 -N 500 -l 1000 --reg-type l2
+   -o test50 -b 10000 -N 500 -l 1000 --reg-typ2 l2
+)

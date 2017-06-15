@@ -125,3 +125,30 @@ watch condor_q
 ```  
 This let's you keep an eye on your jobs and notice when they're done.  The `watch` command runs forever, so when you're done watching, use `control-C` to get out of it.
 
+## Using UGE to send jobs to the GPU machines
+
+We will use UGE to submit jobs to machines with GPUs.  The relevant script is `train_gpu.csh`.  You need to modify train_gpu.csh with the list of jobs you want to run.  You control which jobs from the list are run with the `#$ -t 1-11` line.  Those two lines need to be consistent.  You can change the `#$ -N test` line to choose a more descriptive name for your jobs.  This name will go in the logs.
+
+### Preparing to submit
+
+UGE doesn't have the same permissions issues you find in HTCondor, so all you need to do is make `sgeLogs` and (if not already present) `results` directories, and you should be good to go.  Don't forget to modify (a copy of) the `train_gpu.csh` file to be appropriate for the submission you desire.
+
+### UGE Commands 
+
+* Submit your job  
+```  
+qsub train_gpu.csh  
+```  
+
+* Check you jobs  
+```  
+qstat -u $USER  
+```  
+Note:  `$USER` is just your user name.  You can replace it with someone elses user name to spy on their jobs or leave it off to see all jobs.  
+
+* Watch you jobs
+```
+watch qstat -u $USER  
+``` 
+
+

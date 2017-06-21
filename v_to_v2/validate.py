@@ -44,13 +44,13 @@ if __name__ == "__main__":
 
     # Standardize the inputs.  We'll unstandardize the output to
     # compare to the target
-    inputs = (inputs-inputMeans)/inputStdDevs
+    inputsSTD = (inputs-inputMeans)/inputStdDevs
         
     # Now, let's spin through our validation dataset and see how the
     # model outputs compare to the target.
 
     # First, get the predictions:
-    output = model.predict(inputs, batch_size=256)
+    output = model.predict(inputsSTD, batch_size=256)
 
     # Unscale the outputs
     output = output*outputStdDevs+outputMeans
@@ -66,6 +66,8 @@ if __name__ == "__main__":
     maxTarget = np.amax(target,axis=0)
     minOutput = np.amin(output,axis=0)
     maxOutput = np.amax(output,axis=0)
+    minInput = np.amin(inputs,axis=0)
+    maxInput = np.amax(inputs,axis=0)
 
     print stdDiff
 
@@ -73,7 +75,9 @@ if __name__ == "__main__":
     diffHists = []
     vsHists = []
     diffProf = []
-  
+    inHists = []
+    inProf = []
+
     for itarg in range(target.shape[1]):
         hist = TH1F('diff{}'.format(itarg),
                     'T_{{{0}}}-O_{{{0}}}'.format(itarg),
@@ -88,13 +92,24 @@ if __name__ == "__main__":
                     'Prof(O_{{{0}}}) vs T_{{{0}}}'.format(itarg),
                     400,minTarget[itarg],maxTarget[itarg])
         diffProf.append(hist)
-
+        hist = TH2F('input{}'.format(itarg),
+                    'O_{{{0}}} vs I_{{{0}}}'.format(itarg),
+                    400,minInput[itarg],maxInput[itarg],
+                    400,minOutput[itarg],maxOutput[itarg])
+        inHists.append(hist)
+        hist = TProfile('inProf{}'.format(itarg),
+                        'Prof(O_{{{0}}}) vs I_{{{0}}}'.format(itarg),
+                        400,minInput[itarg],maxInput[itarg])
+        inProf.append(hist)
+   
     # Filling the old fashioned way...
     for irow in range(diff.shape[0]):
         for ivar in range(diff.shape[1]):
             diffHists[ivar].Fill(diff[irow][ivar])
             vsHists[ivar].Fill(target[irow][ivar],output[irow][ivar])
             diffProf[ivar].Fill(target[irow][ivar],diff[irow][ivar])
+            inHists[ivar].Fill(inputs[irow][ivar],output[irow][ivar])
+            inProf[ivar].Fill(inputs[irow][ivar],diff[irow][ivar])
             
     # Finally, write out these diffHists to a file
     histFile = args.model.replace('.tgz','.root')
@@ -106,6 +121,10 @@ if __name__ == "__main__":
     for hist in vsHists:
         hist.Write()
     for hist in diffProf:
+        hist.Write()
+    for hist in inHists:
+        hist.Write()
+    for hist in inProf:
         hist.Write()
 
     rootFile.Close()

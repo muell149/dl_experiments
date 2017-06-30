@@ -2,7 +2,7 @@
 
 import numpy as np
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Input
+from keras.layers import Dense, Activation, Input, concatenate
 from keras.optimizers import SGD
 from keras.regularizers import l1, l2, l1_l2
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -28,10 +28,15 @@ if __name__ == "__main__":
                         default=256, type=int,
                         help='Minibatch size')
 
+    parser.add_argument('-s','--shared-layer', dest='shared_layers',
+                        metavar = 'NSH', action='append',
+                        type=int,
+                        help='Specify a layer with %(metavar)s hidden layers for shared network.  ')
+
     parser.add_argument('-l','--layer', dest='layers',
                         metavar = 'NH', action='append',
                         type=int,
-                        help='Specify a layer with %(metavar)s hidden layers.  ')
+                        help='Specify a layer with %(metavar)s hidden layers for merged network.  ')
 
     parser.add_argument('--reg-type', choices = ['l1','l2','l1_l2'],
                         help='Type of regularization to apply')
@@ -100,8 +105,8 @@ if __name__ == "__main__":
     # Check the requested layers.  If none, make the simplest
     # possible: 1 layer with number of nodes equal to the size of the
     # input.
-    if hasattr(args,'layers') and args.layers != None:
-        layers = args.layers
+    if hasattr(args,'shared_layers') and args.shared_layers != None:
+        layers = args.shared_layers
     else:
         layers = [inputA.shape[1]]
 
@@ -117,17 +122,31 @@ if __name__ == "__main__":
     for l in layers[1:]:
         shared_model.add(Dense(l,kernel_regularizer = reg))
         shared_model.add(Activation('relu'))
+
+    input_layerA = Input(shape=(inputA.shape[1],))
+    input_layerB = Input(shape=(inputB.shape[1],))
     
-    encodedA = shared_model(inputA)
-    encodedB = shared_model(inputB)
+    encodedA = shared_model(input_layerA)
+    encodedB = shared_model(input_layerB)
 
-    merged_vector = keras.layers.concatenate([encodedA, encodedB], axis=-1)
+    merged_vector = concatenate([encodedA, encodedB])
 
-    shared_model.add(Dense(outputs.shape[1],
-                    kernel_regularizer = reg))(merged_vector)
-    shared_model.add(Activation("linear"))
+    # Now figure out how many layers to put into the merged network
+    # If nothing is specified, assume one layer with nodes equal to the total number of inputs
+    if hasattr(args,'layers') and args.layers != None:
+        layers = args.layers
+    else:
+        layers = [inputs.shape[1]]
 
-    model = Model(inputs=[networkA, networkB], outputs=outputs)
+    # First layer
+    new_layer = Dense(layers[0], activation='relu', kernel_regularizer = reg)(merged_vector)
+
+    for l in layers[1:]:
+        new_layer = Dense(layers[0], activation='relu', kernel_regularizer = reg)(new_layer)
+
+    output_layer = Dense(outputs.shape[1],activation='linear')(new_layer)
+
+    model = Model(inputs=[input_layerA, input_layerB], outputs=output_layer)
 
     model.compile(loss='mse',
                   optimizer='adam')

@@ -146,23 +146,23 @@ if __name__ == "__main__":
             outputs[iEvt,0:4] = [hadTop.Pt(),hadTop.Eta(), hadTop.Phi(),hadTop.M()]
 
 
-        topCheck = bFromHadTop + jet1FromW + jet2FromW
+##        topCheck = bFromHadTop + jet1FromW + jet2FromW
 
-        print ''
-        print '----------------------------------------'
-        print 'hadTop: {:.2f},{:.2f},{:.2f},{:.2f}'.format(hadTop.Pt(),
-                                                           hadTop.Eta(),
-                                                           hadTop.Phi(),
-                                                           hadTop.M())
+##        print ''
+##        print '----------------------------------------'
+##        print 'hadTop: {:.2f},{:.2f},{:.2f},{:.2f}'.format(hadTop.Pt(),
+##                                                           hadTop.Eta(),
+##                                                           hadTop.Phi(),
+##                                                           hadTop.M())
 
-        print 'topCheck: {:.2f},{:.2f},{:.2f},{:.2f}'.format(topCheck.Pt(),
-                                                             topCheck.Eta(),
-                                                             topCheck.Phi(),
-                                                             topCheck.M())
+##        print 'topCheck: {:.2f},{:.2f},{:.2f},{:.2f}'.format(topCheck.Pt(),
+##                                                             topCheck.Eta(),
+##                                                             topCheck.Phi(),
+##                                                             topCheck.M())
 
-        print 'topMass = {:.2f}'.format(topMass)
-        print '----------------------------------------'
-        print ''
+##        print 'topMass = {:.2f}'.format(topMass)
+##        print '----------------------------------------'
+##        print ''
 
 
     # Check whether outfile has the right extension.  Also, mark whether its PtEtaPhiM or PxPyPzE

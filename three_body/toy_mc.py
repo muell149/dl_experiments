@@ -98,7 +98,7 @@ if __name__ == "__main__":
         cmMass = 0
 
         # Keep picking random values until we get something reasonable
-        while x1 > 1 or x2 > 1 or cmMass < 2*topMass:
+        while x1 > 1 or x2 > 1 or cmMass < 2*topMass or cmMass**2 < fourTopMassSq:
 
             x1 = random.expovariate(xLambda)
             x2 = random.expovariate(xLambda)
@@ -110,6 +110,7 @@ if __name__ == "__main__":
             cmMass = cmVect.M()
 
         # Now generate a ttbar in the CM rest frame
+        
         pFromCM = math.sqrt(cmMass**2-fourTopMassSq)/2
         phi = random.uniform(0,twoPi)
         theta = random.uniform(0,math.pi)

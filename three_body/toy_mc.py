@@ -18,6 +18,8 @@ wWidthConst = 2.085
 topMassConst = 172.5
 topWidthConst = 1.41
 
+maxTries = 500
+
 # Get our ROOT random number generator set up
 ROOT.gRandom.SetSeed(0)
 
@@ -49,14 +51,28 @@ if __name__ == "__main__":
             print 'Generating event {}'.format(iEvt)
 
         if args.random_mass:
-            topMass = random.uniform(0,500)
+            topMass = random.uniform(0,300)
             wMass = random.uniform(topMass*0.25,topMass*0.75)
         else:
-            topMass = ROOT.gRandom.BreitWigner(topMassConst,topWidthConst)
             wMass = ROOT.gRandom.BreitWigner(wMassConst,wWidthConst)
-            # Guard against the very low chance the wMass > topMass by bad luck.
-            while wMass > topMass:
+            iTry = 0
+            # Guard against a silly big (or small) W mass
+            while abs(wMass-wMassConst)/wWidthConst > 20:
+                iTry += 1
+                if iTry > maxTries:
+                    raise RuntimeError('Exhausted {} tries in generating random number'.format(maxTries))
                 wMass = ROOT.gRandom.BreitWigner(wMassConst,wWidthConst)
+
+            topMass = ROOT.gRandom.BreitWigner(topMassConst,topWidthConst)
+            iTry = 0
+            # Again guard against silly big or small top masses
+            while topMass < 1.1*wMass or topMass > 0.05*beamE:
+                iTry += 1
+                if iTry > maxTries:
+                    message = 'Exhausted {} tries in generating random number\n'.format(maxTries)
+                    message += ' wMass = {:.2f}'.format(topMass)
+                    raise RuntimeError(message)
+                topMass = ROOT.gRandom.BreitWigner(topMassConst,topWidthConst)                
 
         halfWMass = wMass/2
         pFromTopDecay = (topMass**2-wMass**2)/(2*topMass)
@@ -98,7 +114,14 @@ if __name__ == "__main__":
         cmMass = 0
 
         # Keep picking random values until we get something reasonable
+        iTry = 0
         while x1 > 1 or x2 > 1 or cmMass < 2*topMass or cmMass**2 < fourTopMassSq:
+
+            iTry += 1
+            if iTry > maxTries:
+                message = 'Exhausted {} tries in generating random number\n'.format(maxTries)
+                message += '  topMass = {:.2f}'.format(topMass)
+                raise RuntimeError(message)
 
             x1 = random.expovariate(xLambda)
             x2 = random.expovariate(xLambda)
@@ -146,24 +169,47 @@ if __name__ == "__main__":
         else:
             outputs[iEvt,0:4] = [hadTop.Pt(),hadTop.Eta(), hadTop.Phi(),hadTop.M()]
 
+        if (bFromHadTop.Pt() > beamE or
+            jet1FromW.Pt() > beamE or
+            jet2FromW.Pt() > beamE):
 
-##        topCheck = bFromHadTop + jet1FromW + jet2FromW
+            print '-This looks wrong!!!----------------------'
 
-##        print ''
-##        print '----------------------------------------'
-##        print 'hadTop: {:.2f},{:.2f},{:.2f},{:.2f}'.format(hadTop.Pt(),
-##                                                           hadTop.Eta(),
-##                                                           hadTop.Phi(),
-##                                                           hadTop.M())
 
-##        print 'topCheck: {:.2f},{:.2f},{:.2f},{:.2f}'.format(topCheck.Pt(),
-##                                                             topCheck.Eta(),
-##                                                             topCheck.Phi(),
-##                                                             topCheck.M())
+            print 'bFromHadTop: {:.2f},{:.2f},{:.2f},{:.2f}'.format(bFromHadTop.Pt(),
+                                                                    bFromHadTop.Eta(),
+                                                                    bFromHadTop.Phi(),
+                                                                    bFromHadTop.M())
 
-##        print 'topMass = {:.2f}'.format(topMass)
-##        print '----------------------------------------'
-##        print ''
+            print 'jet1FromW: {:.2f},{:.2f},{:.2f},{:.2f}'.format(jet1FromW.Pt(),
+                                                                  jet1FromW.Eta(),
+                                                                  jet1FromW.Phi(),
+                                                                  jet1FromW.M())
+
+            print 'jet2FromW: {:.2f},{:.2f},{:.2f},{:.2f}'.format(jet2FromW.Pt(),
+                                                                  jet2FromW.Eta(),
+                                                                  jet2FromW.Phi(),
+                                                                  jet2FromW.M())
+
+
+            print 'hadTop: {:.2f},{:.2f},{:.2f},{:.2f}'.format(hadTop.Pt(),
+                                                               hadTop.Eta(),
+                                                               hadTop.Phi(),
+                                                               hadTop.M())
+            topCheck = bFromHadTop + jet1FromW + jet2FromW
+            
+            print 'topCheck: {:.2f},{:.2f},{:.2f},{:.2f}'.format(topCheck.Pt(),
+                                                                 topCheck.Eta(),
+                                                                 topCheck.Phi(),
+                                                                 topCheck.M())
+            
+            print 'topMass = {:.2f}'.format(topMass)
+            print 'wMass = {:.2f}'.format(wMass)
+            print 'x1 = {:.2f}'.format(x1)
+            print 'x2 = {:.2f}'.format(x2)
+            print '----------------------------------------'
+            print ''
+            raise ValueError('Too much energy!')
 
 
     # Check whether outfile has the right extension.  Also, mark whether its PtEtaPhiM or PxPyPzE

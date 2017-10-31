@@ -1,11 +1,11 @@
 #! /usr/bin/env python
-
+ 
 import numpy as np
-from keras.models import Sequential
+import keras
+from keras.models import Sequential, Model
 from keras.layers import Dense, Activation
-from keras.optimizers import Adam
-from keras.regularizers import l1, l2, l1_l2
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.regularizers import l1, l2
+from keras.callbacks import ModelCheckpoint
 import argparse, tarfile, os, tempfile, shutil
 
 if __name__ == "__main__":
@@ -13,6 +13,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train ANN auto-encoder.')
     parser.add_argument('infile',
                         help='File name for reading events.')
+
+    parser.add_argument('oldmodel',
+                        help='File path for pretrained layer.')
 
     parser.add_argument('-o','--out', dest='outbase', metavar='OUTBASE',
                         default='model',
@@ -27,6 +30,10 @@ if __name__ == "__main__":
     parser.add_argument('-b','--batch-size',
                         default=256, type=int,
                         help='Minibatch size')
+
+    parser.add_argument('-ol','--old-layer',dest='old_layers',
+                        metavar = 'NH', action='append',type=int, 
+                        help='Specifiy the number of fixed layers you wish to include from pretrained model.')
 
     parser.add_argument('-l','--layer', dest='layers',
                         metavar = 'NH', action='append',
@@ -54,6 +61,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    tempDir = tempfile.mkdtemp()
+    tar = tarfile.open(args.oldmodel)
+    tar.extractall(tempDir)
+    tar.close()
+
+    oldmodel = keras.models.load_model(os.path.join(tempDir,'model.h5'))
+    weights = oldmodel.get_weights()
+    shutil.rmtree(tempDir)
+
     # Keep track of all the output files generate so they can be
     # stuffed into a tar file.  (Yes, a tarfile.  I'm old, OK?)
     outFileList = []
@@ -64,7 +80,6 @@ if __name__ == "__main__":
 
     inputs = npfile['inputs']
     outputs = npfile['outputs']
-    print inputs, outputs
 
     # Standardize the input so that it has mean 0 and std dev. of 1.  This helps
     # tremendously with training performance.
@@ -81,9 +96,7 @@ if __name__ == "__main__":
                         inputMeans=inputMeans,
                         inputStdDevs=inputStdDevs,
                         outputMeans=outputMeans,
-                        outputStdDevs=outputStdDevs,
-                        inputs=inputs,
-                        outputs=outputs)
+                        outputStdDevs=outputStdDevs)
 
     # Initialize the appropriate regularizer (if any)
     reg = None
@@ -93,33 +106,41 @@ if __name__ == "__main__":
         reg = l1(args.reg_penalty)
     elif args.reg_type == "l1_l2":
         reg = l1_l2(args.reg_penalty)
-
+    
     # Check the requested layers.  If none, make the simplest
     # possible: 1 layer with number of nodes equal to the size of the
     # input.
+    if hasattr(args,'old_layers') and args.old_layers != None:
+        old_layers = args.old_layers
+    else:
+        old_layers = [oldmodel.layer.input_shape[1]]
+
     if hasattr(args,'layers') and args.layers != None:
         layers = args.layers
     else:
         layers = [inputs.shape[1]]
 
+        
     # Build a model
     model = Sequential()
 
     # First layer
-    model.add(Dense(layers[0],
-                    input_dim=inputs.shape[1],
-                    kernel_regularizer = reg))
-    model.add(Activation('relu'))
+    model.add(oldmodel.layers[0])
+    model.layers[0].trainable=False
+    model.layers[0].name='dense_0'
 
-    for l in layers[1:]:
-        model.add(Dense(l,kernel_regularizer = reg))
+    for i in old_layers[1:]:
+        model.add(Dense(i))
+        model.layers[1].trainable=False
+    
+    for j in layers[1:]:
+        model.add(Dense(j,kernel_regularizer = reg))
         model.add(Activation('relu'))
 
-    model.add(Dense(outputs.shape[1],
-                    kernel_regularizer = reg))
+    model.add(Dense(outputs.shape[1],kernel_regularizer = reg))
     model.add(Activation("linear"))
-    model.compile(loss='mse',
-                  optimizer='adam')
+
+    model.compile(loss='mse',optimizer='adam')
 
     # Add callbacks
     filepath = 'model.h5'
@@ -130,17 +151,12 @@ if __name__ == "__main__":
     hist = model.fit(inputs, outputs, validation_split=(1-args.train_fraction),
               epochs=args.num_epochs, batch_size=args.batch_size, verbose=2, callbacks=[checkpoint])
 
-
     print 'Saving model structure and parameters:'
-   # model_filename = filepath
-   # model.save(os.path.join(tmpDirName,model_filename))
-   # outFileList.append(model_filename)
 
     print 'Tarring outfiles...'
-    outfile_name = '{}_N{}_b{}_l{}_frac{:f}'.format(args.outbase,
+    outfile_name = '{}_N{}_b{}_frac{:f}'.format(args.outbase,
                                                   args.num_epochs,
                                                   args.batch_size,
-                                                  '_'.join([str(l) for l in layers]),
                                                   args.train_fraction)
     if hasattr(args,'reg_type') and args.reg_type != None:
         outfile_name += ('{}{:f}'.format(args.reg_type,args.reg_penalty))

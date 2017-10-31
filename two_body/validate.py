@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     # Load the data
     npfile = np.load(args.infile)
-    
+
     inputs = npfile['inputs']
     target = npfile['outputs']
 

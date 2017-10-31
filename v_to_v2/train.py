@@ -3,6 +3,7 @@
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation
+from keras.layers.advanced_activations import LeakyReLU, PReLU
 from keras.optimizers import SGD
 from keras.regularizers import l1, l2, l1_l2
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -62,17 +63,17 @@ if __name__ == "__main__":
     # Load the data
     npfile = np.load(args.infile)
 
-    inputs = npfile['inputs']
-    outputs = npfile['outputs']
+    inputsA = npfile['inputs']
+    outputsA = npfile['outputs']
 
     # Standardize the input so that it has mean 0 and std dev. of 1.  This helps
     # tremendously with training performance.
-    inputMeans = inputs[0:int(inputs.shape[0]*args.train_fraction),:].mean(axis=0)
-    inputStdDevs = inputs[0:int(inputs.shape[0]*args.train_fraction),:].std(axis=0)
-    inputs = (inputs-inputMeans)/inputStdDevs
-    outputMeans = outputs[0:int(outputs.shape[0]*args.train_fraction),:].mean(axis=0)
-    outputStdDevs = outputs[0:int(outputs.shape[0]*args.train_fraction),:].std(axis=0)
-    outputs = (outputs-outputMeans)/outputStdDevs
+    inputMeans = inputsA[0:int(inputsA.shape[0]*args.train_fraction),:].mean(axis=0)
+    inputStdDevs = inputsA[0:int(inputsA.shape[0]*args.train_fraction),:].std(axis=0)
+    inputs = (inputsA-inputMeans)/inputStdDevs
+    outputMeans = outputsA[0:int(outputsA.shape[0]*args.train_fraction),:].mean(axis=0)
+    outputStdDevs = outputsA[0:int(outputsA.shape[0]*args.train_fraction),:].std(axis=0)
+    outputs = (outputsA-outputMeans)/outputStdDevs
 
     npFileName = 'std.npz'
     outFileList.append(npFileName)
@@ -80,7 +81,9 @@ if __name__ == "__main__":
                         inputMeans=inputMeans,
                         inputStdDevs=inputStdDevs,
                         outputMeans=outputMeans,
-                        outputStdDevs=outputStdDevs)
+                        outputStdDevs=outputStdDevs,
+                        inputs=inputsA,
+                        outputs=outputsA)
 
     # Initialize the appropriate regularizer (if any)
     reg = None
@@ -107,11 +110,11 @@ if __name__ == "__main__":
     model.add(Dense(layers[0],
                     input_dim=inputs.shape[1],
                     kernel_regularizer = reg))
-    model.add(Activation('relu'))
+    model.add(Activation('softsign')
 
-    for l in layers[1:]:
+    for l in layers[1:]
         model.add(Dense(l,kernel_regularizer = reg))
-        model.add(Activation('relu'))
+        model.add(Activation('softsign')
 
     model.add(Dense(outputs.shape[1],
                     kernel_regularizer = reg))
@@ -132,9 +135,7 @@ if __name__ == "__main__":
 
 
     print 'Saving model structure and parameters:'
-   # model_filename = filepath
-   # model.save(os.path.join(tmpDirName,model_filename))
-   # outFileList.append(model_filename)
+ 
 
     print 'Tarring outfiles...'
     outfile_name = '{}_N{}_b{}_l{}_frac{:f}'.format(args.outbase,

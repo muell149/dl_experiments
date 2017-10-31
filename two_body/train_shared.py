@@ -130,6 +130,7 @@ if __name__ == "__main__":
     encodedB = shared_model(input_layerB)
 
     merged_vector = concatenate([encodedA, encodedB])
+    shared_model.summary()
 
     # Now figure out how many layers to put into the merged network
     # If nothing is specified, assume one layer with nodes equal to the total number of inputs

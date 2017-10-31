@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # Keep track of all the output files generate so they can be
     # stuffed into a tar file.  (Yes, a tarfile.  I'm old, OK?)
     outFileList = []
-    tmpDirName = tempfile.mkdtemp()
+    tmpDirName = tempfile.mkdtemp(dir=os.getcwd())
 
     # Load the data
     npfile = np.load(args.infile)
